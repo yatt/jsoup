@@ -10,6 +10,7 @@ import org.jsoup.parser.TokenQueue;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
@@ -74,6 +75,11 @@ public class HttpConnection implements Connection {
 
     public Connection timeout(int millis) {
         req.timeout(millis);
+        return this;
+    }
+
+    public Connection proxy(Proxy proxy) {
+        req.proxy(proxy);
         return this;
     }
 
@@ -321,6 +327,7 @@ public class HttpConnection implements Connection {
         private boolean ignoreHttpErrors = false;
         private boolean ignoreContentType = false;
         private Parser parser;
+        private Proxy proxy;
 
       	private Request() {
             timeoutMilliseconds = 3000;
@@ -397,6 +404,15 @@ public class HttpConnection implements Connection {
         public Parser parser() {
             return parser;
         }
+
+        public Request proxy(Proxy proxy) {
+            this.proxy = proxy;
+            return this;
+        }
+        
+        public Proxy proxy() {
+            return this.proxy;
+        }
     }
 
     public static class Response extends Base<Connection.Response> implements Connection.Response {
@@ -409,6 +425,7 @@ public class HttpConnection implements Connection {
         private boolean executed = false;
         private int numRedirects = 0;
         private Connection.Request req;
+        private Proxy proxy;
 
         /*
          * For example {@code application/atom+xml;charset=utf-8}.
@@ -511,6 +528,10 @@ public class HttpConnection implements Connection {
             return res;
         }
 
+        public Proxy proxy() {
+            return proxy;
+        }
+        
         public int statusCode() {
             return statusCode;
         }
@@ -554,7 +575,15 @@ public class HttpConnection implements Connection {
 
         // set up connection defaults, and details from request
         private static HttpURLConnection createConnection(Connection.Request req) throws IOException {
-            HttpURLConnection conn = (HttpURLConnection) req.url().openConnection();
+            HttpURLConnection conn = null;
+            if (req.proxy() == null)
+            {
+                conn = (HttpURLConnection) req.url().openConnection();
+            }
+            else
+            {
+                conn = (HttpURLConnection) req.url().openConnection(req.proxy());
+            }
             conn.setRequestMethod(req.method().name());
             conn.setInstanceFollowRedirects(false); // don't rely on native redirection support
             conn.setConnectTimeout(req.timeout());

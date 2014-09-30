@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
 import java.net.URL;
+import java.net.Proxy;
 import java.util.Map;
 import java.util.Collection;
 import java.io.IOException;
@@ -55,6 +56,8 @@ public interface Connection {
      * @return this Connection, for chaining
      */
     public Connection timeout(int millis);
+
+    public Connection proxy(Proxy proxy);
 
     /**
      * Set the maximum bytes to read from the (uncompressed) connection into the body, before the connection is closed,
@@ -434,6 +437,19 @@ public interface Connection {
          * @return current Parser
          */
         public Parser parser();
+    
+        /**
+         * Specify the proxy to use
+         * @param proxy proxy to use.
+         * @return this Request, for chaining
+         */
+        public Request proxy(Proxy proxy);
+
+        /**
+         * Get the current proxy to use.
+         * @return current proxy
+         */
+        public Proxy proxy();
     }
 
     /**
